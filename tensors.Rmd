@@ -1,0 +1,252 @@
+---
+title:  "Tensors"
+author: Sudeep Sahadevan
+date: "09/17/2015"
+output:
+ html_document:
+  toc: true
+  theme: cerulean
+  highlight: tango
+  
+ pdf_document:
+  toc: true
+  theme: united
+  highlight: tango  
+---
+
+###### A set of functions to do tensor analysis and higher order (genaralized) svd (hosvd|hogsvd)
+
+## **get.tensor**
+
+##### Description
+Given a list of matrices and mode for the tensor, construct a tensor object of "atensor" class.
+
+##### Parameters
+* mat.list : a list of matrices
+* mode : Tensor mode (Currently supports mode 1, 2 and 3) 
+
+##### Usage
+```{r eval=FALSE}
+get.tensor(mat.list,mode=3)
+```
+##### Return
+An object of "atensor" class which has the following attributes:
+
+* ndim : numeric vector, the first two variables are the dimensions of input matrices, third variable, number of input matrices
+* mode: A numeric variable, mode of the tensor
+* dimnames: A list, row and column names of input matrices
+* data: An array object, to hold the data
+
+## **tensor.unfold**
+
+##### Description
+Given a tensor and the mode to unfold, unfold the tensor
+
+##### Parameters
+* tensor: an object of "atensor" class
+* mode: the mode to unfold the tensor, three modes are supported at present, 1 column wise, 2 row wise, 3 tube wise
+* verbose: boolean, controls the verbosity level 
+
+##### Usage
+```{r, eval=FALSE}
+tensor.unfold(tensor,mode=1,verbose=TRUE)
+```
+##### Return
+A matrix
+
+## **tensor.fold**
+
+##### Description
+
+Given a matrix, the mode of the unfolded matrix and dimensions of the tensor, fold the matrix into  a tensor.
+
+##### Parameters
+* mat: input matrix
+* mode: mode of the matrix, 1 for column, 2 for row and 3 for tube
+* nmode: total modes of the tensor
+* nrow: number of row elements for the tensor
+* ncol: number of column elements for the tensor
+* ntube: number of tube elements
+* namedim: a list of row and column names for the input matrices (optional) 
+* verbose: boolean, controls the verbosity level
+
+##### Usage
+```{r,eval=FALSE}
+tensor.fold(mat,mode=1,nmode=3,n.row,n.col,n.tube,namedim=NULL,verbose=TRUE)
+```
+##### Return
+An object of "atensor" class which has the following attributes:
+
+* ndim : numeric vector, the first two variables are the dimensions of input matrices, third variable, number of input matrices
+* mode: A numeric variable, mode of the tensor
+* dimnames: A list, row and column names of input matrices
+* data: An array object, to hold the data
+
+## **get.fnorm**
+
+##### Description
+
+Given an object of class "atensor", "array", "matrix" or "data.frame" calculate the Frobenius norm.
+For a matrix A, Frobenius norm is defined as $\parallel{A}\parallel_{F}=\sqrt[]{\sum_{j=1}^{M}\sum_{i=1}^{N}|a_{i\,j}|^2}$
+
+##### Parameters
+* obj: an object of "atensor" class OR "array" OR "matrix" OR "data.frame"
+
+##### Usage
+```{r,eval=FALSE}
+get.fnorm(obj)
+```
+
+##### Return
+
+A scalar value
+
+## **ho.svd**
+
+##### Description
+
+Given an tensor, compute the higher order singular value decomposition (hosvd).
+
+hosvd explanation: Tamara G. Kolda and Brett W. Bader (2009). Tensor Decompositions and Applications. SIAM Rev., 51(3), 455–500.
+
+[Article DOI](http://epubs.siam.org/doi/abs/10.1137/07070111X)
+
+[Pdf link](http://www.cs.cmu.edu/~christos/courses/826-resources/PAPERS+BOOK/Kolda-Bader-SAND2007-6702.pdf)
+
+##### Parameters
+* tensor: an object of "atensor" class
+* ranks: ranks for decomposing the tensor, either a scalar or a vector satisfying the condition `length(ranks)==tensor@mode`, but this value cannot be NULL
+
+##### Usage
+```{r,eval=FALSE}
+ho.svd(tensor,ranks = 10,verbose = TRUE)
+```
+
+##### Return
+
+An list with the following elements:
+
+* t.svd : tensor decomposition
+* t.est : tensor re-estimated from the decomposition (t.svd)
+* resid : residual, Frobenius norm of the difference between input tensor and the re-estimated t.est 
+
+## **tensor.list.mult**
+
+##### Description
+
+Given a list of matrices and a tensor, unroll the tensor, multiply with the list and roll it back to  a tensor
+
+##### Parameters
+* tensor: an object of "atensor" class
+* mat.list: a list of matrices
+* mode.list: an integer vector with `length(list.mode) == length(matlist)` and the values  denote the mode in which the tensor must be unrolled
+* verbose: A boolean controlling the verbosity level
+
+##### Usage
+
+```{r,eval=FALSE}
+tensor.list.mult(tensor, mat.list, mode.list, verbose = TRUE)
+```
+
+##### Return
+
+An object of "atensor" class which has the following attributes:
+
+* ndim : numeric vector, the first two variables are the dimensions of input matrices, third variable, number of input matrices
+* mode: A numeric variable, mode of the tensor
+* dimnames: A list, row and column names of input matrices
+* data: An array object, to hold the data
+
+## **compute.hogsvd**
+
+##### <a name="chogsvd"></a> Description
+
+Given a list of matrices, compute the higher order generalized singular value decomposition as proposed by the publication:
+
+Ponnapalli SP, Saunders MA, Van Loan CF, Alter O (2011). A Higher-Order Generalized Singular Value Decomposition for Comparison of Global mRNA Expression from Multiple Organisms. PLoS ONE 6(12): e28072
+
+[Article DOI: 10.1371/journal.pone.0028072](http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0028072)
+
+and improvements for using similarity matrices for hogsvd were proposed by:
+
+Xiao X, Moreno-Moral A, Rotival M, Bottolo L, Petretto E (2014) Multi-tissue Analysis of Co-expression Networks by Higher-Order Generalized Singular Value Decomposition Identifies Functionally Coherent Transcriptional Modules. PLoS Genet 10(1): e1004006
+
+[Article DOI: 10.1371/journal.pgen.1004006](http://journals.plos.org/plosgenetics/article?id=10.1371/journal.pgen.1004006)
+
+NOTE: #' NOTE: Moreover, ($W$ OR $S$ here)  is not guaranteed to be non-defective and have a full set of real eigenvalues and eigenvectors. However, even in the absence of an exact common decomposition, the real part of the complex eigenvectors can be used to derive a low rank approximation of the common subspace and extract common and differential covariance structures from the data.
+
+HOGSVD of a list of N matrices are defined as:
+
+$D_{1}\, =\, U_{1}\Sigma_{1}V^{T},$
+
+$D_{2}\, =\, U_{2}\Sigma_{2}V^{T},$
+
+$\vdots$
+
+$D_{N}\, =\, U_{N}\Sigma_{N}V^{T},$
+
+In case, the input list contains expression value matrices , the matrix $A$ is calculated as $A\, =\, D^{T}D$.
+
+See [compute.right.singular](#crs) function for details on calculating the right singular eigensystem for N matrices. Given
+$V$, the left singular system calculation is as follows:
+
+$VB_{i}^{T}\, =\, D_{i}^{T},$
+
+$B_{i}\, \equiv\, (b_{i,1},b_{i,2}...b{i,n}),\, i\, =\, 1,2...N$
+
+$\sigma_{i,k}\, =\, \parallel{b_{i,k}}\parallel,$
+
+$\Sigma_{i}\, =\, diag(\sigma_{i,k}),$
+
+$B_{i}\, =\, U_{i}\Sigma_{i}$.
+
+##### Parameters
+
+* matlist: a list of matrices, the matrices could be $n\times{m}$ expression matrices ($D$) or $n\times{n}$ similarity matrices ($A$)
+* crossp: Boolean, if `TRUE`, calculates matrix crossproduct $A\, =\, D^{T}D$ 
+* pinv: Boolean, if `TRUE`, calculates Moore–Penrose pseudoinverse ($A^{+}$) of the matrix, else calculates the general inverse ($A^{-1}$) of a matrix
+
+##### Usage
+```{r,eval=FALSE}
+compute.hogsvd(matlist, crossp = FALSE, pinv = TRUE)
+```
+
+##### Return
+
+An object of "hogsvd" class with the following attributes:
+
+* Ulist: a list of left singular matrices, $U_{i}$,  where `length(Ulist)==length(matlist)`
+* Dlist: a list of diagonal vectors from the decomposition of matlist, $\Sigma_{i}$
+* V: the generalized right singular matrix computed from the input matlist, $V$
+* Vd: a  vector of diagonal elements from hogsvd calculation, $\lambda_{k}$
+
+## **compute.right.singular**
+
+##### <a name="crs"></a>Description
+
+Given a list of matrices, compute the generalized right singular eigensystem for the matrices.
+This function is a part of the function [compute.hogsvd](#chogsvd). Refer [compute.hogsvd](#chogsvd) function for article details.
+
+Right singular eigensystem for a list of $N$ matrices is calculated as:
+
+$S\,\equiv\,\frac{1}{N(N-1)}\sum_{i=1}^{N}\sum_{i>j}^{N}(A_{i}A_{j}^{-1}+A_{j}A_{i}^{-1}),$
+
+$SV\, =\, V\Lambda,$
+
+$V\, \equiv\, (v_{1},v_{2}...v_{n}),\, \Lambda\, =\, diag(\lambda_{k})$ with
+
+$\parallel{v_{k}}\parallel=1$.
+
+##### Parameters
+
+* matlist: a list of matrices, the matrices could be $n\times{m}$ expression matrces or $n\times{n}$ similarity matrices
+* pinv: Boolean, if `TRUE`, calculates Moore–Penrose pseudoinverse ($A^{+}$) of the matrix, else calculates the general inverse ($A^{-1}$) of a matrix
+
+##### Usage
+
+```{r,eval=FALSE}
+compute.right.singular(matlist, pinv = FALSE)
+```
+
+##### Return
+Returns the results from the function `eigen`, a list with attributes `values` ($\lambda_{k}$) and `vectors` $V$.
